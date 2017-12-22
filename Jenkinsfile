@@ -237,7 +237,7 @@ node {
   }
   //---------------------------------------
 
-  stage('Sanity Testing-dGoss') {
+  stage('Sanity Testing using dGoss') {
     if("${dgossFile}".toUpperCase() == 'NONE') {
     echo 'The requested stage is dGoss but yaml was not found. Hence aborting the testing and pushing the successful image into temporary repo'
     //---------------------------------------
