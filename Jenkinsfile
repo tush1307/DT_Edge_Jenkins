@@ -266,7 +266,7 @@ node {
     echo "Anchore query complete for all files in ${dockerImageName}:${env.BUILD_NUMBER}"
     sh "docker exec anchore anchore query --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} cve-scan all > anchore_cve_report.txt"
     echo "Anchore CVE scan complete for all vulnerabilities in ${dockerImageName}:${env.BUILD_NUMBER}"
-    sh "docker exec anchore anchore toolbox --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} show anchore_toolbox_show_final.txt"
+    sh "docker exec anchore anchore toolbox --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} show > anchore_toolbox_show_final.txt"
     echo "The final report is prepared for Jenkins Admin ny Anchore Scanner."
   //---------------------------------------
   }
