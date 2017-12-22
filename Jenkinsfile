@@ -256,18 +256,18 @@ node {
   //---------------------------------------
 
   stage('Anchore Vulnerability Scanning') {
-    echo 'The requested stage is Ancore vulnerability scanning testing known CVE for targets.'
+    echo "The requested stage is Ancore vulnerability scanning testing known CVE for targets."
     echo "DGOSS TESTING TAG USED FOR IMAGE : ${env.BUILD_NUMBER}";
     sh "docker exec anchore anchore analyze --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} --imagetype base > anchore_analysis_report.txt"
-    echo 'Anchore analysis complete for ${dockerImageName}:${env.BUILD_NUMBER}'
+    echo "Anchore analysis complete for ${dockerImageName}:${env.BUILD_NUMBER}"
     sh "docker exec anchore anchore audit --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} report > anchore_audit_report.txt"
-    echo 'Anchore audit complete for ${dockerImageName}:${env.BUILD_NUMBER}'
+    echo "Anchore audit complete for ${dockerImageName}:${env.BUILD_NUMBER}"
     sh "docker exec anchore anchore query --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} list-files-detail all > anchore_files_report.txt"
-    echo 'Anchore query complete for all files in ${dockerImageName}:${env.BUILD_NUMBER}'
+    echo "Anchore query complete for all files in ${dockerImageName}:${env.BUILD_NUMBER}"
     sh "docker exec anchore anchore query --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} cve-scan all > anchore_cve_report.txt"
-    echo 'Anchore CVE scan complete for all vulnerabilities in ${dockerImageName}:${env.BUILD_NUMBER}'
+    echo "Anchore CVE scan complete for all vulnerabilities in ${dockerImageName}:${env.BUILD_NUMBER}"
     sh "docker exec anchore anchore toolbox --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} show anchore_toolbox_show_final.txt"
-    echo 'The final report is prepared for Jenkins Admin ny Anchore Scanner.'
+    echo "The final report is prepared for Jenkins Admin ny Anchore Scanner."
   //---------------------------------------
   }
  }
