@@ -45,6 +45,8 @@ node {
   //----------------------------------------
 
   stage('Code Pickup') {
+    //slackSend "Code Pickup started for ${env.JOB_NAME} ${env.BUILD_NUMBER} for target ${dockerImageName}:${env.BUILD_NUMBER} from ${scmPath}/${scmSourceRepo} (<${env.BUILD_URL}|Open>)" 
+
     echo "Source Code Repository Type : ${scmSourceRepo}"
     echo "Source Code Repository Path : ${scmPath}"
     
@@ -125,10 +127,12 @@ node {
     } else {
         error 'Unknown Source code repository. Only GIT and SVN are supported'
     }
+    //slackSend "Code Pickup finished for ${env.JOB_NAME} ${env.BUILD_NUMBER} for target ${dockerImageName}:${env.BUILD_NUMBER} from ${scmPath}/${scmSourceRepo} (<${env.BUILD_URL}|Open>)" 
   } 
   //---------------------------------------
   
   //Preparing for Build & Package
+  //slackSend "Dockerization started for ${env.JOB_NAME} ${env.BUILD_NUMBER} for target ${dockerImageName}:${env.BUILD_NUMBER} from ${scmPath}/${scmSourceRepo} (<${env.BUILD_URL}|Open>)" 
   def appModuleSeperated = fileExists 'app'
   def testModuleSeperated = fileExists 'test'
   def appPath = ''
@@ -194,6 +198,7 @@ node {
   //---------------------------------------
   
   if("${stage}".toUpperCase() == 'BUILD') {
+    //slackSend "The requested stage is Build only. Hence pushing the successful image into temporary repo for target ${dockerImageName}:${env.BUILD_NUMBER} from ${scmPath}/${scmSourceRepo} (<${env.BUILD_URL}|Open>)" 
     echo 'The requested stage is Build only. Hence pushing the successful image into temporary repo'
     //---------------------------------------
     // We are pushing to a private Temporary Docker registry as this is just Build case.
@@ -209,8 +214,10 @@ node {
         pcImg = docker.build("${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER}", "--network host --file ${distDockerFile} ${appWorkingDir} ")
         pcImg.push("${env.BUILD_NUMBER}");
       }
+      //slackSend "BUILD stage pushed to temporary docker repository." 
     }   
   } else if ("${stage}".toUpperCase() == 'DEPLOY') {
+  //slackSend "The requested stage is Deploy. Hence without certifying, the image is pushed to permanent repo for target ${dockerImageName}:${env.BUILD_NUMBER} from ${scmPath}/${scmSourceRepo} (<${env.BUILD_URL}|Open>)" 
     echo 'The requested stage is Deploy. Hence without certifying, the image is pushed to permanent repo'
     //withDockerRegistry([credentialsId: 'docker-registry-login', url: permanentDockerRegistry]) {
     docker.withRegistry("https://${permanentDockerRegistry}/", 'docker-registry-login') {
@@ -221,8 +228,10 @@ node {
         pcImg = docker.build("${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER}", "--network host --file ${distDockerFile} ${appWorkingDir} ")
         pcImg.push('latest');
       }
+      slackSend "DEPLOY stage pushed to permanent docker repository without certifying."
     }    
   } else if ("${stage}".toUpperCase() == 'CERTIFY'){
+  //slackSend "The requested stage is Certify. Hence just publishing to temporary repo and provisioning sandbox for target ${dockerImageName}:${env.BUILD_NUMBER} from ${scmPath}/${scmSourceRepo} (<${env.BUILD_URL}|Open>)" 
     echo 'The requested stage is Certify. Hence just publishing to temporary repo and provisioning sandbox'
     docker.withRegistry("http://${temporaryDockerRegistry}/", 'docker-registry-login') {
       def pcImg
@@ -233,12 +242,14 @@ node {
         pcImg = docker.build("${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER}", "--network host --file ${distDockerFile} ${appWorkingDir} ")
         pcImg.push("${env.BUILD_NUMBER}");
       }
+      //slackSend "CERTIDY stage started. Sandboxing Initiated."
     }   
   }
   //---------------------------------------
 
   stage('Sanity Testing using dGoss') {
     if("${dgossFile}".toUpperCase() == 'NONE') {
+    //slackSend "Developer did not provide a goss.yaml for  ${dockerImageName}:${env.BUILD_NUMBER}. Ignoring this test."
     echo 'The requested stage is dGoss but yaml was not found. Hence aborting the testing and pushing the successful image into temporary repo'
     //---------------------------------------
     // We are pushing to a private Temporary Docker registry as this is just Build case.
@@ -248,27 +259,36 @@ node {
     //withDockerRegistry([credentialsId: 'docker-registry-login', url: temporaryDockerRegistry]) {
    
   }else {
+    //slackSend "dGoss testing started for  ${dockerImageName}:${env.BUILD_NUMBER}. "
     echo 'The requested stage is dGoss testing with a YAML file. Hence testing the image pushed to permanent repo'
     echo "DGOSS TESTING TAG USED FOR IMAGE : ${env.BUILD_NUMBER}";
     sh "cp /goss/goss.yaml ."
     sh "dgoss run ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER}"
   } 
+  //slackSend "dGoss unit testing complete."
   //---------------------------------------
 
   stage('Anchore Vulnerability Scanning') {
-    echo "The requested stage is Ancore vulnerability scanning testing known CVE for targets."
-    echo "DGOSS TESTING TAG USED FOR IMAGE : ${env.BUILD_NUMBER}";
-    sh "docker exec anchore anchore analyze --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} --imagetype base > anchore_analysis_report.txt"
-    echo "Anchore analysis complete for ${dockerImageName}:${env.BUILD_NUMBER}"
-    sh "docker exec anchore anchore audit --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} report > anchore_audit_report.txt"
-    echo "Anchore audit complete for ${dockerImageName}:${env.BUILD_NUMBER}"
-    sh "docker exec anchore anchore query --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} list-files-detail all > anchore_files_report.txt"
-    echo "Anchore query complete for all files in ${dockerImageName}:${env.BUILD_NUMBER}"
-    sh "docker exec anchore anchore query --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} cve-scan all > anchore_cve_report.txt"
-    echo "Anchore CVE scan complete for all vulnerabilities in ${dockerImageName}:${env.BUILD_NUMBER}"
-    sh "docker exec anchore anchore toolbox --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} show > anchore_toolbox_show_final.txt"
-    echo "The final report is prepared for Jenkins Admin ny Anchore Scanner."
+    try{
+
+        echo "The requested stage is Ancore vulnerability scanning testing known CVE for targets."
+        echo "DGOSS TESTING TAG USED FOR IMAGE : ${env.BUILD_NUMBER}";
+        sh "docker exec anchore anchore analyze --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} --imagetype base > anchore_analysis_report.txt"
+        echo "Anchore analysis complete for ${dockerImageName}:${env.BUILD_NUMBER}"
+        sh "docker exec anchore anchore audit --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} report > anchore_audit_report.txt"
+        echo "Anchore audit complete for ${dockerImageName}:${env.BUILD_NUMBER}"
+        sh "docker exec anchore anchore query --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} list-files-detail all > anchore_files_report.txt"
+        echo "Anchore query complete for all files in ${dockerImageName}:${env.BUILD_NUMBER}"
+        sh "docker exec anchore anchore query --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} cve-scan all > anchore_cve_report.txt"
+        echo "Anchore CVE scan complete for all vulnerabilities in ${dockerImageName}:${env.BUILD_NUMBER}"
+        sh "docker exec anchore anchore toolbox --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} show > anchore_toolbox_show_final.txt"
+        echo "The final report is prepared for Jenkins Admin by Anchore Scanner."
   //---------------------------------------
+    }
+    catch(err) { 
+            echo 'Anchore test failed.'
+            slackSend "Anchore Vulnerability Scanning FAILED for ${env.JOB_NAME} ${env.BUILD_NUMBER} for target ${dockerImageName}:${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)" 
   }
  }
+}
 }
