@@ -154,18 +154,29 @@ node {
   }
   
   def isBuildAndPackageRequired = true
+  def isTestPackageRequired = false;   
   def buildDockerFile = appPath + 'Dockerfile.build'
   def distDockerFile = appPath + 'Dockerfile.dist'
+  def testDockerFile = appPath + 'Dockerfile.test'
   if (fileExists(buildDockerFile) && fileExists(distDockerFile)) {
     echo 'It looks like this application is compiler based application and hence there is a seperate dockerfile found for compile, build and packaging.'
     isBuildAndPackageRequired = true;    
-  } else if (appPath + fileExists('Dockerfile')) {
+  }else if (appPath + fileExists('Dockerfile')) {
     echo 'It looks like there is only one docker file. May be this is interpreter based application technology.'
     isBuildAndPackageRequired = false;
     distDockerFile = appPath + 'Dockerfile'
   } else {
     echo 'Dockerfile not found under ' + appPath
   }
+
+  if(fileExists(testDockerFile)){
+      echo 'A test dockerfile is also found. Application will be tested based on the test dockerfile.'
+      isTestPackageRequired = true;   
+  }else {
+      echo 'A test dockerfile was not found. Application will  not be tested in a sandbox.'
+      isTestPackageRequired = false;   
+  }
+ 
   def appWorkingDir = (appPath=='') ? '.' : appPath.substring(0, appPath.length()-1)
   //End of Preparation for Build and Package
   
@@ -232,12 +243,12 @@ node {
     }    
   } else if ("${stage}".toUpperCase() == 'CERTIFY'){
   //slackSend "The requested stage is Certify. Hence just publishing to temporary repo and provisioning sandbox for target ${dockerImageName}:${env.BUILD_NUMBER} from ${scmPath}/${scmSourceRepo} (<${env.BUILD_URL}|Open>)" 
-    echo 'The requested stage is Certify. Hence just publishing to temporary repo and provisioning sandbox'
+    echo 'The requested stage is Certify. Testing the image and pushing into permanent Docker Registry'
     docker.withRegistry("http://${temporaryDockerRegistry}/", 'docker-registry-login') {
       def pcImg
       stage('Certify') {
         // Let us tag and push the newly built image. Will tag using the image name provided. No need of Docker hostname as it appends itself.
-        //pcImg = docker.build("${temporaryDockerRegistry}/${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER}", "--file ${distDockerFile} ${appWorkingDir}")
+        pcImg = docker.build("${temporaryDockerRegistry}/${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER}", "--file ${distDockerFile} ${appWorkingDir}")
         echo "CERTIFY TAG USED FOR IMAGE : ${env.BUILD_NUMBER}";
         pcImg = docker.build("${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER}", "--network host --file ${distDockerFile} ${appWorkingDir} ")
         pcImg.push("${env.BUILD_NUMBER}");
@@ -246,6 +257,31 @@ node {
     }   
   }
   //---------------------------------------
+  stage('Testing in Container Sandbox') {
+    if(isTestPackageRequired){
+          echo 'Testing the dockerfile before pushing to permanenet repository.'
+          
+          echo 'Working Directory for Docker Build file: ' + appWorkingDir
+          echo "Build Tag Name: ${dockerRepo}/${dockerImageName}-build:${env.BUILD_NUMBER}"
+          echo "Build params: --file ${testDockerFile} ${appWorkingDir}"
+          
+          appCompileAndPackageImg = docker.build("${dockerRepo}/${dockerImageName}-sandbox:${env.BUILD_NUMBER}", "--file ${testDockerFile} ${appWorkingDir}")      
+          
+          //Reading the CMD from Docker file and would be executing within the container. This is due to the behaviour of this plugin
+          //TODO - Danger zone. This approach is not based on grammer. So in case if the CMD is not shell (if exec) or ENTRYPOINT is given, this approach would not work
+          echo '${dockerImageName}-sandbox:${env.BUILD_NUMBER}'   
+          sh "docker run ${dockerRepo}/${dockerImageName}-sandbox:${env.BUILD_NUMBER} "
+          //appCompileAndPackageImg.inside('--net=host') 
+          //{        
+            //sh dockerCMD.substring(dockerCMD.indexOf('CMD')+3, dockerCMD.length())
+            //sh './test.sh'
+            //End of Danger Zone code   
+         // }   
+    }
+    else{
+        echo 'No Dockerfile corresponding to tests have been found.'
+    }
+  }
 
   stage('Sanity Testing using dGoss') {
     if("${dgossFile}".toUpperCase() == 'NONE') {
