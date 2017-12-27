@@ -316,7 +316,6 @@ node {
     try{
         sh "mkdir /anchore/${dockerImageName}-${env.BUILD_NUMBER}"
         echo "The requested stage is Ancore vulnerability scanning testing known CVE for targets."
-        echo "DGOSS TESTING TAG USED FOR IMAGE : ${env.BUILD_NUMBER}";
         sh "docker exec anchore anchore analyze --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} --imagetype base > /anchore/${dockerImageName}-${env.BUILD_NUMBER}/anchore_analysis_report.txt"
         echo "Anchore analysis complete for ${dockerImageName}:${env.BUILD_NUMBER}"
         sh "docker exec anchore anchore audit --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} report > /anchore/${dockerImageName}-${env.BUILD_NUMBER}/anchore_audit_report.txt"
@@ -327,11 +326,13 @@ node {
         echo "Anchore CVE scan complete for all vulnerabilities in ${dockerImageName}:${env.BUILD_NUMBER}"
         sh "docker exec anchore anchore toolbox --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} show > /anchore/${dockerImageName}-${env.BUILD_NUMBER}/anchore_toolbox_show_final.txt"
         echo "The final report is prepared for Jenkins Admin by Anchore Scanner."
+        emailext attachLog: true, body: '', subject: 'Build Issues', to: 'harsh.prateek.singh@gmail.com'
   //---------------------------------------
     }
     catch(err) { 
             echo 'Anchore test failed.'
             slackSend "Anchore Vulnerability Scanning FAILED for ${env.JOB_NAME} ${env.BUILD_NUMBER} for target ${dockerImageName}:${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)" 
+
   }
  }
 }
