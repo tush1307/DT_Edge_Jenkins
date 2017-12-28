@@ -302,19 +302,19 @@ node {
     //withDockerRegistry([credentialsId: 'docker-registry-login', url: temporaryDockerRegistry]) {
    
   }else {
-      sh "mkdir /goss/${dockerImageName}-${env.BUILD_NUMBER}"
+      sh "mkdir /goss/${env.JOB_NAME}"
     //slackSend "dGoss testing started for  ${dockerImageName}:${env.BUILD_NUMBER}. "
     echo 'The requested stage is dGoss testing with a YAML file. Hence testing the image pushed to permanent repo'
     echo "DGOSS TESTING TAG USED FOR IMAGE : ${env.BUILD_NUMBER}";
     //sh "cp /goss/goss.yaml ."
-    sh "dgoss run ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} > /goss/${dockerImageName}-${env.BUILD_NUMBER}/dGossSanityReport.txt"
+    sh "dgoss run ${dockerRepo}/${env.JOB_NAME} > /goss/${dockerImageName}-${env.BUILD_NUMBER}/dGossSanityReport.txt"
   } 
   //slackSend "dGoss unit testing complete."
   //---------------------------------------
 
   stage('Anchore Vulnerability Scanning') {
     try{
-        sh "mkdir /anchore/${dockerImageName}-${env.BUILD_NUMBER}"
+        sh "mkdir /anchore/${env.JOB_NAME}"
         echo "The requested stage is Ancore vulnerability scanning testing known CVE for targets."
         sh "docker exec anchore anchore analyze --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} --imagetype base > /anchore/${dockerImageName}-${env.BUILD_NUMBER}/anchore_analysis_report.txt"
         echo "Anchore analysis complete for ${dockerImageName}:${env.BUILD_NUMBER}"
@@ -326,7 +326,7 @@ node {
         echo "Anchore CVE scan complete for all vulnerabilities in ${dockerImageName}:${env.BUILD_NUMBER}"
         sh "docker exec anchore anchore toolbox --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} show > /anchore/${dockerImageName}-${env.BUILD_NUMBER}/anchore_toolbox_show_final.txt"
         echo "The final report is prepared for Jenkins Admin by Anchore Scanner."
-        emailext attachmentsPattern: '/anchore/${dockerImageName}-${env.BUILD_NUMBER}/*.txt', body: 'Find attachments', subject: 'Anchore Vulnerability Reports', to: 'harsh2.singh@gmail.com'
+        emailext attachmentsPattern: '/anchore/${env.JOB_NAME}/*.txt', body: 'Find attachments', subject: 'Anchore Vulnerability Reports', to: 'harsh2.singh@gmail.com'
   //---------------------------------------
     }
     catch(err) { 
