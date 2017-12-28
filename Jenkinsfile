@@ -329,7 +329,7 @@ node {
         echo "Anchore CVE scan complete for all vulnerabilities in ${dockerImageName}:${env.BUILD_NUMBER}"
         sh "docker exec anchore anchore toolbox --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} show > /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/anchore_toolbox_show_final.txt"
         echo "The final report is prepared for Jenkins Admin by Anchore Scanner."
-        sh "scp /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/*.txt  root@172.19.74.232:/anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/"
+        sh "scp /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/*.txt  root@172.19.74.232:/anchore/${env.JOB_NAME}/latest"
         emailext attachmentsPattern: '/anchore/${env.JOB_NAME}/*.txt', body: 'Find attachments', subject: 'Anchore Vulnerability Reports', to: 'harsh2.singh@gmail.com'
   //---------------------------------------
     }
