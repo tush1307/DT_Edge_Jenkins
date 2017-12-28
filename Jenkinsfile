@@ -1,8 +1,8 @@
 #!/bin/bash +x
 //TODO - Make SVN and GIT Checkout steps perfect with Jenkins way. Do not use Shell way.
 
-def temporaryDockerRegistry = tempDockerRegistry
-def permanentDockerRegistry = permDockerRegistry
+def temporaryDockerRegistry = tempDockerRegistry+":443"
+def permanentDockerRegistry = permDockerRegistry+":443"
 def nexusRepoHostPort = nexusRepositoryHost
 def nexusRepo = nexusRepository
 
