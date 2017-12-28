@@ -315,7 +315,7 @@ node {
 
   stage('Anchore Vulnerability Scanning') {
     try{
-        sh "mkdir /anchore/${env.JOB_NAME}"
+        sh "mkdir -p /anchore/${env.JOB_NAME}"
         sh "ssh root@172.19.74.252 'mkdir -p /anchore/${env.JOB_NAME}/latest'"
         sh "ssh root@172.19.74.252 'rm *.* /anchore/${env.JOB_NAME}/latest'"
         echo "The requested stage is Ancore vulnerability scanning testing known CVE for targets."
