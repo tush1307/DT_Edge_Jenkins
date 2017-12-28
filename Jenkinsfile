@@ -315,21 +315,21 @@ node {
 
   stage('Anchore Vulnerability Scanning') {
     try{
-        sh "mkdir -p /anchore/${env.JOB_NAME}"
+        sh "mkdir -p /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}"
         sh "ssh root@172.19.74.252 'mkdir -p /anchore/${env.JOB_NAME}/latest'"
         sh "ssh root@172.19.74.252 'rm *.* /anchore/${env.JOB_NAME}/latest'"
         echo "The requested stage is Ancore vulnerability scanning testing known CVE for targets."
-        sh "docker exec anchore anchore analyze --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} --imagetype base > /anchore/${dockerImageName}-${env.BUILD_NUMBER}/anchore_analysis_report.txt"
+        sh "docker exec anchore anchore analyze --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} --imagetype base > /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/anchore_analysis_report.txt"
         echo "Anchore analysis complete for ${dockerImageName}:${env.BUILD_NUMBER}"
-        sh "docker exec anchore anchore audit --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} report > /anchore/${dockerImageName}-${env.BUILD_NUMBER}/anchore_audit_report.txt"
+        sh "docker exec anchore anchore audit --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} report > /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/anchore_audit_report.txt"
         echo "Anchore audit complete for ${dockerImageName}:${env.BUILD_NUMBER}"
-        sh "docker exec anchore anchore query --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} list-files-detail all > /anchore/${dockerImageName}-${env.BUILD_NUMBER}/anchore_files_report.txt"
+        sh "docker exec anchore anchore query --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} list-files-detail all > /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/anchore_files_report.txt"
         echo "Anchore query complete for all files in ${dockerImageName}:${env.BUILD_NUMBER}"
-        sh "docker exec anchore anchore query --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} cve-scan all > /anchore/${dockerImageName}-${env.BUILD_NUMBER}/anchore_cve_report.txt"
+        sh "docker exec anchore anchore query --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} cve-scan all > /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/anchore_cve_report.txt"
         echo "Anchore CVE scan complete for all vulnerabilities in ${dockerImageName}:${env.BUILD_NUMBER}"
-        sh "docker exec anchore anchore toolbox --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} show > /anchore/${dockerImageName}-${env.BUILD_NUMBER}/anchore_toolbox_show_final.txt"
+        sh "docker exec anchore anchore toolbox --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} show > /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/anchore_toolbox_show_final.txt"
         echo "The final report is prepared for Jenkins Admin by Anchore Scanner."
-        sh "scp /anchore/${env.JOB_NAME}/*.* 'mkdir -p /anchore/${env.JOB_NAME}/'"
+        sh "scp /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/*.* 'mkdir -p /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/'"
         emailext attachmentsPattern: '/anchore/${env.JOB_NAME}/*.txt', body: 'Find attachments', subject: 'Anchore Vulnerability Reports', to: 'harsh2.singh@gmail.com'
   //---------------------------------------
     }
