@@ -317,7 +317,7 @@ node {
     try{
         sh "mkdir -p /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}"
         sh "ssh root@172.19.74.232 'mkdir -p /anchore/${env.JOB_NAME}/latest'"
-        sh "ssh root@172.19.74.232 'rm *.* /anchore/${env.JOB_NAME}/latest'"
+        //sh "ssh root@172.19.74.232 'rm *.* /anchore/${env.JOB_NAME}/latest'"
         echo "The requested stage is Ancore vulnerability scanning testing known CVE for targets."
         sh "docker exec anchore anchore analyze --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} --imagetype base > /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/anchore_analysis_report.txt"
         echo "Anchore analysis complete for ${dockerImageName}:${env.BUILD_NUMBER}"
@@ -329,7 +329,7 @@ node {
         echo "Anchore CVE scan complete for all vulnerabilities in ${dockerImageName}:${env.BUILD_NUMBER}"
         sh "docker exec anchore anchore toolbox --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} show > /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/anchore_toolbox_show_final.txt"
         echo "The final report is prepared for Jenkins Admin by Anchore Scanner."
-        sh "scp /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/*.*  root@172.19.74.232:/anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/"
+        sh "scp /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/*.txt  root@172.19.74.232:/anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/"
         emailext attachmentsPattern: '/anchore/${env.JOB_NAME}/*.txt', body: 'Find attachments', subject: 'Anchore Vulnerability Reports', to: 'harsh2.singh@gmail.com'
   //---------------------------------------
     }
