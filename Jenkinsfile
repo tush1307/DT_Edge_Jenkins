@@ -308,6 +308,7 @@ node {
     echo "DGOSS TESTING TAG USED FOR IMAGE : ${env.BUILD_NUMBER}";
     //sh "cp /goss/goss.yaml ."
     sh "dgoss run ${dockerRepo}/${env.JOB_NAME} > /goss/${dockerImageName}-${env.BUILD_NUMBER}/dGossSanityReport.txt"
+    scp
   } 
   //slackSend "dGoss unit testing complete."
   //---------------------------------------
@@ -315,6 +316,8 @@ node {
   stage('Anchore Vulnerability Scanning') {
     try{
         sh "mkdir /anchore/${env.JOB_NAME}"
+        sh "ssh root@172.19.74.252 'mkdir -p /anchore/${env.JOB_NAME}/latest'"
+        sh "ssh root@172.19.74.252 'rm *.* /anchore/${env.JOB_NAME}/latest'"
         echo "The requested stage is Ancore vulnerability scanning testing known CVE for targets."
         sh "docker exec anchore anchore analyze --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} --imagetype base > /anchore/${dockerImageName}-${env.BUILD_NUMBER}/anchore_analysis_report.txt"
         echo "Anchore analysis complete for ${dockerImageName}:${env.BUILD_NUMBER}"
@@ -326,6 +329,7 @@ node {
         echo "Anchore CVE scan complete for all vulnerabilities in ${dockerImageName}:${env.BUILD_NUMBER}"
         sh "docker exec anchore anchore toolbox --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} show > /anchore/${dockerImageName}-${env.BUILD_NUMBER}/anchore_toolbox_show_final.txt"
         echo "The final report is prepared for Jenkins Admin by Anchore Scanner."
+        sh "scp /anchore/${env.JOB_NAME}/*.* 'mkdir -p /anchore/${env.JOB_NAME}/'"
         emailext attachmentsPattern: '/anchore/${env.JOB_NAME}/*.txt', body: 'Find attachments', subject: 'Anchore Vulnerability Reports', to: 'harsh2.singh@gmail.com'
   //---------------------------------------
     }
