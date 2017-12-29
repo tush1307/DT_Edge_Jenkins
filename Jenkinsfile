@@ -302,7 +302,7 @@ node {
     //withDockerRegistry([credentialsId: 'docker-registry-login', url: temporaryDockerRegistry]) {
    
   }else {
-    sh "mkdir /goss/${env.JOB_NAME}"
+    sh "mkdir -p /goss/${env.JOB_NAME}"
     sh "ssh root@172.19.74.232 'mkdir -p /root/gosstest/${env.JOB_NAME}/latest'"    
     //slackSend "dGoss testing started for  ${dockerImageName}:${env.BUILD_NUMBER}. "
     echo 'The requested stage is dGoss testing with a YAML file. Hence testing the image pushed to permanent repo'
