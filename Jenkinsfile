@@ -249,7 +249,7 @@ node {
       def pcImg
       stage('Certify') {
         // Let us tag and push the newly built image. Will tag using the image name provided. No need of Docker hostname as it appends itself.
-        pcImg = docker.build("${temporaryDockerRegistry}/${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER}", "--file ${distDockerFile} ${appWorkingDir}")
+        //pcImg = docker.build("${temporaryDockerRegistry}/${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER}", "--file ${distDockerFile} ${appWorkingDir}")
         echo "CERTIFY TAG USED FOR IMAGE : ${env.BUILD_NUMBER}";
         pcImg = docker.build("${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER}", "--network host --file ${distDockerFile} ${appWorkingDir} ")
         pcImg.push("${env.BUILD_NUMBER}");
