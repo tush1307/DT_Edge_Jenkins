@@ -302,14 +302,14 @@ node {
     //withDockerRegistry([credentialsId: 'docker-registry-login', url: temporaryDockerRegistry]) {
    
   }else {
-    sh "mkdir -p /goss/${env.JOB_NAME}"
+    sh "mkdir -p /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}"
     sh "ssh root@172.19.74.232 'mkdir -p /root/gosstest/${env.JOB_NAME}/latest'"    
     //slackSend "dGoss testing started for  ${dockerImageName}:${env.BUILD_NUMBER}. "
     echo 'The requested stage is dGoss testing with a YAML file. Hence testing the image pushed to permanent repo'
     echo "DGOSS TESTING TAG USED FOR IMAGE : ${env.BUILD_NUMBER}";
     //sh "cp /goss/goss.yaml ."
-    sh "dgoss run ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} > /goss/${env.JOB_NAME}/dGossSanityReport.txt"
-    sh "scp /goss/${env.JOB_NAME}/*.txt  root@172.19.74.232:/root/gosstest/${env.JOB_NAME}/latest"
+    sh "dgoss run ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} > /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}/dGossSanityReport.txt"
+    sh "scp /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}/dGossSanityReport.txt  root@172.19.74.232:/root/gosstest/${env.JOB_NAME}/latest/report.txt"
   } 
   //slackSend "dGoss unit testing complete."
   //---------------------------------------
