@@ -308,7 +308,7 @@ node {
     echo 'The requested stage is dGoss testing with a YAML file. Hence testing the image pushed to permanent repo'
     echo "DGOSS TESTING TAG USED FOR IMAGE : ${env.BUILD_NUMBER}";
     //sh "cp /goss/goss.yaml ."
-    sh "dgoss run ${dockerRepo}/${env.JOB_NAME} > /goss/${env.JOB_NAME}/dGossSanityReport.txt"
+    sh "dgoss run ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} > /goss/${env.JOB_NAME}/dGossSanityReport.txt"
     sh "scp /goss/${env.JOB_NAME}/*.txt  root@172.19.74.232:/root/gosstest/${env.JOB_NAME}/latest"
   } 
   //slackSend "dGoss unit testing complete."
