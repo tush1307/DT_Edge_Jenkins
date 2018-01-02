@@ -323,25 +323,25 @@ node {
         echo "The final report is prepared for Jenkins Admin by Anchore Scanner."
         sh "scp /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/*.txt  root@172.19.74.232:/anchore/${env.JOB_NAME}/latest"
       
-        sh " grep -o 'High' anchore_cve_report.txt | wc -l > tempvar";
-        def high=readFile('tempvar').trim()
+        sh " grep -o 'High' anchore_cve_report.txt | wc -l > tempvar1";
+        def high=readFile('tempvar1').trim()
         echo "High Severity Issues=$high";
-        sh 'rm tempvar'
+        sh 'rm tempvar1'
       
-        sh " grep -o 'Medium' anchore_cve_report.txt | wc -l > tempvar";
-        def medium=readFile('tempvar').trim()
+        sh " grep -o 'Medium' anchore_cve_report.txt | wc -l > tempvar2";
+        def medium=readFile('tempvar2').trim()
         echo "Medium Severity Issues=$medium";
-        sh 'rm tempvar'
+        sh 'rm tempvar2'
       
-        sh " grep -o 'Low' anchore_cve_report.txt | wc -l > tempvar";
-        def low=readFile('tempvar').trim()
+        sh " grep -o 'Low' anchore_cve_report.txt | wc -l > tempvar3";
+        def low=readFile('tempvar3').trim()
         echo "Low Severity Issues=$low";
-        sh 'rm tempvar'
+        sh 'rm tempvar3'
       
-        sh " grep -o 'Negligible' anchore_cve_report.txt | wc -l > tempvar";
-        def neglibile=readFile('tempvar').trim()
-        echo "Low Severity Issues=$neglibile";
-        sh 'rm tempvar'
+        sh " grep -o 'Negligible' anchore_cve_report.txt | wc -l > tempvar4";
+        def neglibile=readFile('tempvar4').trim()
+        echo "Negligible Severity Issues=$neglibile";
+        sh 'rm tempvar4'
 
 
         emailext attachmentsPattern: '/anchore/${env.JOB_NAME}/*.txt', body: 'Find attachments', subject: 'Anchore Vulnerability Reports', to: 'harsh2.singh@gmail.com'
