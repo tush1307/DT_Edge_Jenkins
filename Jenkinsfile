@@ -9,7 +9,7 @@ def testDevelopmentIp="172.19.74.225"
 // This update is for Bug ID : 531
 def httpProxy = ''
 def httpsProxy = ''
-  
+def dgossFile="NONE"  
 node {
   echo "Parameters"
   echo "Temp Docker Registry: ${tempDockerRegistry}"
@@ -291,6 +291,16 @@ node {
   }
 
   stage('Sanity Testing using dGoss') {
+    if(fileExists '*.yaml'){
+      dgossFile=='TRUE'
+      echo 'Dgoss File found'
+    }
+    else
+    {
+      dgossFile='NONE'
+      echo 'Dgoss File not found'
+    }
+    
     if("${dgossFile}".toUpperCase() == 'NONE') {
     //slackSend "Developer did not provide a goss.yaml for  ${dockerImageName}:${env.BUILD_NUMBER}. Ignoring this test."
     echo 'The requested stage is dGoss but yaml was not found. Hence aborting the testing and pushing the successful image into temporary repo'
