@@ -293,39 +293,25 @@ node {
   stage('Sanity Testing using dGoss') {
     if(fileExists('goss.yaml')){
       dgossFile=='TRUE'
-      echo 'Dgoss File found'
+      echo 'The requested stage is dGoss but yaml was not found. Hence aborting the testing and pushing the successful image into temporary repo'
     }
     else
     {
       dgossFile='NONE'
       echo 'Dgoss File not found'
+      sh "mkdir -p /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}"
+
+      sh "ssh root@172.19.74.232 'mkdir -p /root/gosstest/${env.JOB_NAME}/latest'" 
+      sh "ssh root@${testDevelopmentIp} 'mkdir -p /root/gosstest/${env.JOB_NAME}/latest'"  
+      //slackSend "dGoss testing started for  ${dockerImageName}:${env.BUILD_NUMBER}. "
+      echo 'The requested stage is dGoss testing with a YAML file. Hence testing the image pushed to permanent repo'
+      echo "DGOSS TESTING TAG USED FOR IMAGE : ${env.BUILD_NUMBER}";
+      //sh "cp /goss/goss.yaml ."
+      sh "dgoss run ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} > /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}/dGossSanityReport.txt"
+      sh "scp /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}/dGossSanityReport.txt  root@172.19.74.232:/root/gosstest/${env.JOB_NAME}/latest/report.txt"
+      sh "scp /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}/dGossSanityReport.txt  root@${testDevelopmentIp}:/root/gosstest/${env.JOB_NAME}/latest/report.txt"  
     }
     
-    if("${dgossFile}".toUpperCase() == 'NONE') {
-    //slackSend "Developer did not provide a goss.yaml for  ${dockerImageName}:${env.BUILD_NUMBER}. Ignoring this test."
-    echo 'The requested stage is dGoss but yaml was not found. Hence aborting the testing and pushing the successful image into temporary repo'
-    //---------------------------------------
-    // We are pushing to a private Temporary Docker registry as this is just Build case.
-    // 'docker-registry-login' is the username/password credentials ID as defined in Jenkins Credentials.
-    // This is used to authenticate the Docker client to the registry.
-    //docker.withRegistry("http://${temporaryDockerRegistry}/", 'docker-registry-login') {
-    //withDockerRegistry([credentialsId: 'docker-registry-login', url: temporaryDockerRegistry]) {
-   
-  }else {
-    sh "mkdir -p /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}"
-    sh "ssh root@172.19.74.232 'mkdir -p /root/gosstest/${env.JOB_NAME}/latest'" 
-    sh "ssh root@${testDevelopmentIp} 'mkdir -p /root/gosstest/${env.JOB_NAME}/latest'"  
-    //slackSend "dGoss testing started for  ${dockerImageName}:${env.BUILD_NUMBER}. "
-    echo 'The requested stage is dGoss testing with a YAML file. Hence testing the image pushed to permanent repo'
-    echo "DGOSS TESTING TAG USED FOR IMAGE : ${env.BUILD_NUMBER}";
-    //sh "cp /goss/goss.yaml ."
-    sh "dgoss run ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} > /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}/dGossSanityReport.txt"
-    sh "scp /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}/dGossSanityReport.txt  root@172.19.74.232:/root/gosstest/${env.JOB_NAME}/latest/report.txt"
-    sh "scp /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}/dGossSanityReport.txt  root@${testDevelopmentIp}:/root/gosstest/${env.JOB_NAME}/latest/report.txt"  
-  } 
-  //slackSend "dGoss unit testing complete."
-  //---------------------------------------
-
   stage('Anchore Vulnerability Scanning') {
     try{
         sh "mkdir -p /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}"
