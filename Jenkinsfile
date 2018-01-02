@@ -291,13 +291,13 @@ node {
   }
 
   stage('Sanity Testing using dGoss') {
-    if(fileExists('goss.yaml')){
-      dgossFile=='TRUE'
+    if(fileExists('goss.yaml')==False){
+      dgossFile=='NONE'
       echo 'The requested stage is dGoss but yaml was not found. Hence aborting the testing and pushing the successful image into temporary repo'
     }
     else
     {
-      dgossFile='NONE'
+      dgossFile='TRUE'
       echo 'Dgoss File not found'
       sh "mkdir -p /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}"
 
