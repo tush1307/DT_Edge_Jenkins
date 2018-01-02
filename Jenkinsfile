@@ -261,17 +261,9 @@ node {
   stage('Testing in Container Sandbox') {
     if(isTestPackageRequired){
           echo 'Testing the dockerfile before pushing to permanenet repository.'
-          if (fileExists('test.sh')) {
-            echo 'Test.sh found'
-          }
-          else 
-          {
-            echo 'No test.sh'
-          }
           echo 'Working Directory for Docker Build file: ' + appWorkingDir
           echo "Build Tag Name: ${dockerRepo}/${dockerImageName}-build:${env.BUILD_NUMBER}"
           echo "Build params: --file ${testDockerFile} ${appWorkingDir}"
-          
           appCompileAndPackageImg = docker.build("${dockerRepo}/${dockerImageName}-sandbox:${env.BUILD_NUMBER}", "--file ${testDockerFile} ${appWorkingDir}")      
           
           //Reading the CMD from Docker file and would be executing within the container. This is due to the behaviour of this plugin
@@ -291,14 +283,9 @@ node {
   }
 
   stage('Sanity Testing using dGoss') {
-    if(fileExists('goss.yaml')==False){
-      dgossFile=='NONE'
-      echo 'The requested stage is dGoss but yaml was not found. Hence aborting the testing and pushing the successful image into temporary repo'
-    }
-    else
-    {
+    if(fileExists('goss.yaml')){
       dgossFile='TRUE'
-      echo 'Dgoss File not found'
+      echo 'Dgoss File found'
       sh "mkdir -p /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}"
 
       sh "ssh root@172.19.74.232 'mkdir -p /root/gosstest/${env.JOB_NAME}/latest'" 
@@ -310,6 +297,12 @@ node {
       sh "dgoss run ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} > /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}/dGossSanityReport.txt"
       sh "scp /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}/dGossSanityReport.txt  root@172.19.74.232:/root/gosstest/${env.JOB_NAME}/latest/report.txt"
       sh "scp /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}/dGossSanityReport.txt  root@${testDevelopmentIp}:/root/gosstest/${env.JOB_NAME}/latest/report.txt"  
+      
+    }
+    else
+    {
+      dgossFile=='NONE'
+      echo 'The requested stage is dGoss but yaml was not found. Hence aborting the testing and pushing the successful image into temporary repo'
     }
     
   stage('Anchore Vulnerability Scanning') {
