@@ -322,23 +322,24 @@ node {
         sh "docker exec anchore anchore toolbox --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} show > /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/anchore_toolbox_show_final.txt"
         echo "The final report is prepared for Jenkins Admin by Anchore Scanner."
         sh "scp /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/*.txt  root@172.19.74.232:/anchore/${env.JOB_NAME}/latest"
-      
-        sh " grep -o 'High' anchore_cve_report.txt | wc -l > tempvar1";
+        
+        sh "cd 
+        sh " grep -o 'High' /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/anchore_cve_report.txt | wc -l > tempvar1";
         def high=readFile('tempvar1').trim()
         echo "High Severity Issues=$high";
         sh 'rm tempvar1'
       
-        sh " grep -o 'Medium' anchore_cve_report.txt | wc -l > tempvar2";
+        sh " grep -o 'Medium' /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/anchore_cve_report.txt | wc -l > tempvar2";
         def medium=readFile('tempvar2').trim()
         echo "Medium Severity Issues=$medium";
         sh 'rm tempvar2'
       
-        sh " grep -o 'Low' anchore_cve_report.txt | wc -l > tempvar3";
+        sh " grep -o 'Low' /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/anchore_cve_report.txt | wc -l > tempvar3";
         def low=readFile('tempvar3').trim()
         echo "Low Severity Issues=$low";
         sh 'rm tempvar3'
       
-        sh " grep -o 'Negligible' anchore_cve_report.txt | wc -l > tempvar4";
+        sh " grep -o 'Negligible' /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/anchore_cve_report.txt | wc -l > tempvar4";
         def neglibile=readFile('tempvar4').trim()
         echo "Negligible Severity Issues=$neglibile";
         sh 'rm tempvar4'
