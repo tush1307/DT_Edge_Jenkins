@@ -291,7 +291,7 @@ node {
   }
 
   stage('Sanity Testing using dGoss') {
-    if(fileExists '*.yaml'){
+    if(fileExists('goss.yaml')){
       dgossFile=='TRUE'
       echo 'Dgoss File found'
     }
