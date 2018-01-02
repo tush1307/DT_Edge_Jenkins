@@ -322,6 +322,28 @@ node {
         sh "docker exec anchore anchore toolbox --image ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} show > /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/anchore_toolbox_show_final.txt"
         echo "The final report is prepared for Jenkins Admin by Anchore Scanner."
         sh "scp /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/*.txt  root@172.19.74.232:/anchore/${env.JOB_NAME}/latest"
+      
+        sh " grep -o 'High' anchore_cve_report.txt | wc -l > tempvar";
+        def high=readFile('tempvar').trim()
+        echo "High Severity Issues=$high";
+        sh 'rm tempvar'
+      
+        sh " grep -o 'Medium' anchore_cve_report.txt | wc -l > tempvar";
+        def medium=readFile('tempvar').trim()
+        echo "Medium Severity Issues=$medium";
+        sh 'rm tempvar'
+      
+        sh " grep -o 'Low' anchore_cve_report.txt | wc -l > tempvar";
+        def low=readFile('tempvar').trim()
+        echo "Low Severity Issues=$low";
+        sh 'rm tempvar'
+      
+        sh " grep -o 'Negligible' anchore_cve_report.txt | wc -l > tempvar";
+        def neglibile=readFile('tempvar').trim()
+        echo "Low Severity Issues=$neglibile";
+        sh 'rm tempvar'
+
+
         emailext attachmentsPattern: '/anchore/${env.JOB_NAME}/*.txt', body: 'Find attachments', subject: 'Anchore Vulnerability Reports', to: 'harsh2.singh@gmail.com'
   //---------------------------------------
     }
