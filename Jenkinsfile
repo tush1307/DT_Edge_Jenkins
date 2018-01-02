@@ -323,7 +323,7 @@ node {
         echo "The final report is prepared for Jenkins Admin by Anchore Scanner."
         sh "scp /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/*.txt  root@172.19.74.232:/anchore/${env.JOB_NAME}/latest"
         
-        sh "cd 
+ 
         sh " grep -o 'High' /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}/anchore_cve_report.txt | wc -l > tempvar1";
         def high=readFile('tempvar1').trim()
         echo "High Severity Issues=$high";
