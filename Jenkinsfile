@@ -271,7 +271,7 @@ node {
           //Reading the CMD from Docker file and would be executing within the container. This is due to the behaviour of this plugin
           //TODO - Danger zone. This approach is not based on grammer. So in case if the CMD is not shell (if exec) or ENTRYPOINT is given, this approach would not work
           echo '${dockerImageName}-sandbox:${env.BUILD_NUMBER}'   
-          sh "docker run ${dockerRepo}/${dockerImageName}-sandbox:${env.BUILD_NUMBER}"
+          sh "docker run ${dockerRepo}/${dockerImageName}-sandbox:${env.BUILD_NUMBER} -v ./testresults/:/app/testresults/"
           //appCompileAndPackageImg.inside('--net=host') 
           //{        
             //sh dockerCMD.substring(dockerCMD.indexOf('CMD')+3, dockerCMD.length())
