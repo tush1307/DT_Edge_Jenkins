@@ -288,19 +288,27 @@ node {
 
   stage('Sanity Testing using dGoss') {
     if(fileExists('goss.yaml')){
-      dgossFile='TRUE'
-      echo 'Dgoss File found'
-      sh "mkdir -p /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}"
+      try {
+          dgossFile='TRUE'
+          echo 'Dgoss File found'
+          sh "mkdir -p /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}"
 
-      sh "ssh root@172.19.74.232 'mkdir -p /root/gosstest/${env.JOB_NAME}/latest'" 
-      sh "ssh root@${testDevelopmentIp} 'mkdir -p /root/gosstest/${env.JOB_NAME}/latest'"  
-      //slackSend "dGoss testing started for  ${dockerImageName}:${env.BUILD_NUMBER}. "
-      echo 'The requested stage is dGoss testing with a YAML file. Hence testing the image pushed to permanent repo'
-      echo "DGOSS TESTING TAG USED FOR IMAGE : ${env.BUILD_NUMBER}";
-      //sh "cp /goss/goss.yaml ."
-      sh "dgoss run ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} > /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}/dGossSanityReport.txt"
-      sh "scp /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}/dGossSanityReport.txt  root@172.19.74.232:/root/gosstest/${env.JOB_NAME}/latest/report.txt"
-      sh "scp /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}/dGossSanityReport.txt  root@${testDevelopmentIp}:/root/gosstest/${env.JOB_NAME}/latest/report.txt"  
+          sh "ssh root@172.19.74.232 'mkdir -p /root/gosstest/${env.JOB_NAME}/latest'" 
+          sh "ssh root@${testDevelopmentIp} 'mkdir -p /root/gosstest/${env.JOB_NAME}/latest'"  
+          //slackSend "dGoss testing started for  ${dockerImageName}:${env.BUILD_NUMBER}. "
+          echo 'The requested stage is dGoss testing with a YAML file. Hence testing the image pushed to permanent repo'
+          echo "DGOSS TESTING TAG USED FOR IMAGE : ${env.BUILD_NUMBER}";
+          //sh "cp /goss/goss.yaml ."
+          sh "dgoss run ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} > /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}/dGossSanityReport.txt"
+                
+      } catch (error) {
+          stage "Cleanup after fail"
+          echo "dGoss Failed."
+          throw error
+      } finally {
+          sh "scp /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}/dGossSanityReport.txt  root@172.19.74.232:/root/gosstest/${env.JOB_NAME}/latest/report.txt"
+          sh "scp /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}/dGossSanityReport.txt  root@${testDevelopmentIp}:/root/gosstest/${env.JOB_NAME}/latest/report.txt"  
+      }
       
     }
     else
