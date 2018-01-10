@@ -298,7 +298,7 @@ node {
       echo 'The requested stage is dGoss testing with a YAML file. Hence testing the image pushed to permanent repo'
       echo "DGOSS TESTING TAG USED FOR IMAGE : ${env.BUILD_NUMBER}";
       //sh "cp /goss/goss.yaml ."
-      sh "dgoss run ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} > /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}/dGossSanityReport.txt"
+      sh "dgoss run ${dockerRepo}/${dockerImageName}:${env.BUILD_NUMBER} > /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}/dGossSanityReport.txt 1>&2"
       sh "scp /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}/dGossSanityReport.txt  root@172.19.74.232:/root/gosstest/${env.JOB_NAME}/latest/report.txt"
       sh "scp /goss/${env.JOB_NAME}-${env.BUILD_NUMBER}/dGossSanityReport.txt  root@${testDevelopmentIp}:/root/gosstest/${env.JOB_NAME}/latest/report.txt"  
       
