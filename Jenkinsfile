@@ -260,6 +260,7 @@ node {
   //---------------------------------------
   stage('Testing in Container Sandbox') {
     if(isTestPackageRequired){
+          def workdir=pwd()
           echo 'Testing the dockerfile before pushing to permanenet repository.'
           echo 'Working Directory for Docker Build file: ' + appWorkingDir
           echo 'Creating a local mount point for Dockertest file. The mountpoint is ./testresults and IS EXPECTED in test dockerfile. Refer documentation.'
@@ -272,7 +273,7 @@ node {
           //Reading the CMD from Docker file and would be executing within the container. This is due to the behaviour of this plugin
           //TODO - Danger zone. This approach is not based on grammer. So in case if the CMD is not shell (if exec) or ENTRYPOINT is given, this approach would not work
           echo '${dockerImageName}-sandbox:${env.BUILD_NUMBER}'   
-          sh "docker run -v ./testresults:/app/testresults ${dockerRepo}/${dockerImageName}-sandbox:${env.BUILD_NUMBER} "
+          sh "docker run -v ${workdir}/testresults:/app/testresults ${dockerRepo}/${dockerImageName}-sandbox:${env.BUILD_NUMBER} "
           //appCompileAndPackageImg.inside('--net=host') 
           //{        
             //sh dockerCMD.substring(dockerCMD.indexOf('CMD')+3, dockerCMD.length())
