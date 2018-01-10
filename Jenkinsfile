@@ -264,6 +264,7 @@ node {
           echo 'Working Directory for Docker Build file: ' + appWorkingDir
           echo 'Creating a local mount point for Dockertest file. The mountpoint is ./testresults and IS EXPECTED in test dockerfile. Refer documentation.'
           sh "mkdir -p ./testresults"
+          sh "touch ./testresults/access.log"
           echo "Build Tag Name: ${dockerRepo}/${dockerImageName}-build:${env.BUILD_NUMBER}"
           echo "Build params: --file ${testDockerFile} ${appWorkingDir}"
           appCompileAndPackageImg = docker.build("${dockerRepo}/${dockerImageName}-sandbox:${env.BUILD_NUMBER}", "--file ${testDockerFile} ${appWorkingDir}")      
