@@ -318,6 +318,7 @@ node {
     }
     
   stage('Anchore Vulnerability Scanning') {
+	if(("${stage}".toUpperCase() == 'DEPLOY') || ("${stage}".toUpperCase() == 'CERTIFY')) {
     try{
         sh "mkdir -p /anchore/${env.JOB_NAME}-${env.BUILD_NUMBER}"
         sh "ssh root@172.19.74.232 'mkdir -p /anchore/${env.JOB_NAME}/latest'"      
@@ -363,6 +364,7 @@ node {
     catch(err) { 
             echo 'Anchore test failed.'
             slackSend "Anchore Vulnerability Scanning FAILED for ${env.JOB_NAME} ${env.BUILD_NUMBER} for target ${dockerImageName}:${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)" 
+			}
 
   }
  }
